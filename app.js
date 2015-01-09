@@ -35,7 +35,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(provider.oauth());
 app.use(provider.login());
-app.listen(config.PORT);
+app.listen(CONFIG.PORT);
 
 app.post('/auth', function(req, res, next){
     if(req.isAuthenticated()){
