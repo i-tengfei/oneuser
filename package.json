@@ -2,12 +2,12 @@
   "name": "oneuser",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "body-parser": "^1.10.0",
     "connect-mongo": "^0.4.1",
@@ -19,7 +19,6 @@
     "onetool": "^1.0.1",
     "passport": "^0.2.1",
     "passport-local": "^1.0.0",
-    "passport-oneuser": "^1.0.0",
     "request": "^2.51.0"
   }
 }

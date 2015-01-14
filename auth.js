@@ -20,7 +20,9 @@ provider.on('enforce_login', function(req, res, authorizeUrl, next) {
     }
 });
 provider.on('authorize_form', function(req, res, clientAppkey, authorizeUrl) {
-    res.send('<form method="post" action="' + authorizeUrl + '"><button name="allow">Allow</button><button name="deny">Deny</button></form>');
+    res.render('authorize.jade', {
+        authorizeUrl: authorizeUrl
+    });
 });
 provider.on('save_grant', function(req, clientAppkey, code, next) {
     var userID = req.user._id;
@@ -59,14 +61,14 @@ provider.on('create_access_token', function(userID, clientAppkey, next) {
 provider.on('save_access_token', function(userID, clientAppkey, accessToken) {
     var token = accessToken.access_token;
     User.findOneAndUpdate({
-        '_id': userID, 
+        '_id': userID,
         'clients.appkey': {$ne: clientAppkey}
     }, {
         $push: {clients: {'appkey': clientAppkey, token: token}}
     }, function(err, user){
         if(!err && !user){
             User.findOneAndUpdate({
-                '_id': userID, 
+                '_id': userID,
                 'clients.appkey': clientAppkey
             }, {
                 $set: {'clients.$.token': token}
@@ -92,16 +94,13 @@ provider.on('access_token', function(req, token, next) {
         });
     }
 });
-// provider.on('client_auth', function(clientAppkey, clientSecret, username, password, next) {
-//     console.log(1, clientAppkey, clientSecret, username, password)
-//     if(clientAppkey == '1' && username == 'guest') {
-//         var user_id = '1337';
-
-//         return next(null, user_id);
-//     }
-
-//     return next(new Error('client authentication denied'));
-// });
+//provider.on('client_auth', function(clientAppkey, clientSecret, username, password, next) {
+//    if(clientAppkey == '1' && username == 'guest') {
+//        var user_id = '1337';
+//        return next(null, user_id);
+//    }
+//    return next(new Error('client authentication denied'));
+//});
 
 // ---------- ---------- | Passport | ---------- ---------- //
 passport.serializeUser(function(user, done) {
@@ -130,35 +129,6 @@ passport.use(new LocalStrategy({
         } );
     })
 );
-
-passport.use(new OneUserStrategy({
-        clientID: '07d915de32f2add6c85973b2de8aabe07bc28ad6',
-        clientSecret: '2506edb58f14ffa654c4bedd61e079eb35966c39',
-        authorizationURL: 'http://localhost:3000/oauth/authorize',
-        tokenURL: 'http://localhost:3000/oauth/token',
-        userProfileURL: 'http://localhost:3000/user',
-        callbackURL: 'http://127.0.0.1:3000/auth/oneuser/callback',
-        passReqToCallback: true
-    }, function(req, accessToken, refreshToken, profile, done) {
-        var update = {$set: {'auth.oneuser': {token: accessToken, profile: profile}}};
-        if(req.isAuthenticated()){
-            req.user.update(update, function(err){
-                done(err, req.user);
-            });
-        }else{
-            User.findOne({
-                'auth.oneuser.profile.id': profile.id
-            }, function(err, user){
-                if(err){
-                    return done(err);
-                }
-                user.update(update, function(err){
-                    done(err, user);
-                });
-            });
-        }
-    }
-));
 
 exports.provider = provider;
 exports.passport = passport;
