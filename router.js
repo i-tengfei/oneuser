@@ -5,12 +5,9 @@ var UserModel = mongoose.model('user'),
 
 module.exports = function(app, passport){
 
-    app.post('/auth', function(req, res, next){
-        if(req.isAuthenticated()){
-            res.send(req.user);
-        }else{
-            res.sendStatus(403);
-        }
+    app.post('/auth', function(req, res){
+        if (req.isAuthenticated()) return res.send(req.user);
+        res.status(401).end();
     });
 
     app.all('/logout', function(req, res){
@@ -18,27 +15,20 @@ module.exports = function(app, passport){
         res.redirect('/');
     });
 
-    app.get('/signup', function(req, res, next) {
+    app.get('/signup', function(req, res) {
         res.render('signup.jade');
     });
 
-    app.post('/signup', function(req, res, next) {
+    app.post('/signup', function(req, res) {
         var user = new UserModel(req.body);
         user.save(function (err, result) {
-            if(err){
-                res.send(err);
-            }else{
-                res.send(result);
-            }
+            if(err) return res.status(500).send(err);
+            res.send(result);
         });
     });
 
-    app.get('/login', function(req, res, next) {
-        if(req.isAuthenticated()){
-            res.writeHead(303, {Location: '/'});
-            return res.end();
-        }
-
+    app.get('/login', function(req, res) {
+        if(req.isAuthenticated()) return res.writeHead(303, {Location: '/'}).end();
         res.render('login.jade', {
             next_url: req.query.next ? req.query.next : '/'
         });
@@ -46,40 +36,29 @@ module.exports = function(app, passport){
 
     app.post('/login', function(req, res, next) {
         passport.authenticate('local', function(err, user, info) {
-            if(user){
-                req.login(user, function(){
-                    res.writeHead(303, {Location: req.body.next || '/'});
-                    res.end();
-                });
-            }else{
-                res.send('登录错误！');
-            }
+            if(err) return res.status(500).send(err);
+            if(user) return req.login(user, function(){
+                res.writeHead(303, {Location: req.body.next || '/'}).end();
+            });
+            res.status(401).end();
         })(req, res, next);
     });
 
     app.get('/user', function(req, res, next) {
-        if(req.isAuthenticated()){
-            res.send(req.user);
-        } else {
-            res.status(403).send('用户未登录！');
-        }
+        if(req.isAuthenticated()) return res.send(req.user);
+        res.status(401).end();
     });
 
     app.get('/client', function(req, res, next) {
-        if(req.isAuthenticated()){
-            var client = new ClientModel({
-                user: req.user._id
-            });
-            client.save(function(err, result){
-                if(err){
-                    res.send(err);
-                }else{
-                    res.send(result);
-                }
-            });
-        } else {
-            res.status(403).send('用户未登录！');
-        }
+
+        if(!req.isAuthenticated()) return res.status(401).end();
+        var client = new ClientModel({
+            user: req.user._id
+        });
+        client.save(function(err, result){
+            if(err) return res.status(500).send(err);
+            res.send(result);
+        });
     });
 
 };
