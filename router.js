@@ -28,7 +28,7 @@ module.exports = function(app, passport){
     });
 
     app.get('/login', function(req, res) {
-        if(req.isAuthenticated()) return res.writeHead(303, {Location: '/'}).end();
+        if(req.isAuthenticated()) return res.redirect(303, '/');
         res.render('login.jade', {
             next_url: req.query.next ? req.query.next : '/'
         });
@@ -38,7 +38,7 @@ module.exports = function(app, passport){
         passport.authenticate('local', function(err, user, info) {
             if(err) return res.status(500).send(err);
             if(user) return req.login(user, function(){
-                res.writeHead(303, {Location: req.body.next || '/'}).end();
+                res.redirect(303, req.body.next || '/');
             });
             res.status(401).end();
         })(req, res, next);
