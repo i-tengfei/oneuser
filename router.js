@@ -6,7 +6,7 @@ var UserModel = mongoose.model('user'),
 module.exports = function(app, passport){
 
     app.post('/auth', function(req, res){
-        if (req.isAuthenticated()) return res.send(req.user);
+        if (req.isAuthenticated()) return res.json(req.user);
         res.status(401).end();
     });
 
@@ -22,8 +22,8 @@ module.exports = function(app, passport){
     app.post('/signup', function(req, res) {
         var user = new UserModel(req.body);
         user.save(function (err, result) {
-            if(err) return res.status(500).send(err);
-            res.send(result);
+            if(err) return res.status(500).json(err);
+            res.json(result);
         });
     });
 
@@ -36,7 +36,7 @@ module.exports = function(app, passport){
 
     app.post('/login', function(req, res, next) {
         passport.authenticate('local', function(err, user, info) {
-            if(err) return res.status(500).send(err);
+            if(err) return res.status(500).json(err);
             if(user) return req.login(user, function(){
                 res.redirect(303, req.body.next || '/');
             });
@@ -45,7 +45,7 @@ module.exports = function(app, passport){
     });
 
     app.get('/user', function(req, res, next) {
-        if(req.isAuthenticated()) return res.send(req.user);
+        if(req.isAuthenticated()) return res.json(req.user);
         res.status(401).end();
     });
 
@@ -56,8 +56,8 @@ module.exports = function(app, passport){
             user: req.user._id
         });
         client.save(function(err, result){
-            if(err) return res.status(500).send(err);
-            res.send(result);
+            if(err) return res.status(500).json(err);
+            res.json(result);
         });
     });
 
