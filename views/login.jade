@@ -54,6 +54,6 @@ html
                     button(type='submit') 提交
             ul.login_btns
                 li
-                    a(href='/auth/qq?next=#{next}') QQ
+                    a(href='/auth/qq?next=#{encodeURIComponent(next)}') QQ
                 li
-                    a(href='/auth/github?next=#{next}') Github
+                    a(href='/auth/github?next=#{encodeURIComponent(next)}') Github

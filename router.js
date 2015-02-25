@@ -47,7 +47,7 @@ module.exports = function(app, passport){
     app.get('/login', function(req, res) {
         if(req.isAuthenticated()) return res.redirect(303, '/');
         res.render('login.jade', {
-            next: encodeURIComponent(req.query.next ? req.query.next : '/')
+            next: req.query.next ? req.query.next : '/'
         });
     });
 
