@@ -94,8 +94,8 @@ User.statics = {
             if(err){return console.log(err);}
             if(result) {
                 var user = result.auth[result.auth.map(function(x){
-                    return x.id;
-                }).indexOf(id)];
+                    return ''+x.id;
+                }).indexOf(''+id)];
                 for(var key in doc){
                     user[key] = doc[key];
                 }

@@ -134,7 +134,7 @@ passport.use(new LocalStrategy({
 function auth(accessToken, refreshToken, profile, done) {
     profile.accessToken = accessToken;
     profile.refreshToken = refreshToken;
-    if(!accessToken || !profile.id) return;
+    if(!accessToken || !profile.id) return done(new Error());
     User.authUser(profile.id, profile, function(err, result, isNew){
         done(err, result);
     });
