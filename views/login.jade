@@ -48,12 +48,12 @@ html
         #right
             .login_form
                 form(method='post' action='/login')
-                    input(type='hidden' name='next' value='#{next_url}')
+                    input(type='hidden' name='next' value='#{next}')
                     input(type='text' placeholder='用户名' name='username')
                     input(type='password' placeholder='密　码' name='password')
                     button(type='submit') 提交
             ul.login_btns
                 li
-                    a(href='/auth/qq') QQ
+                    a(href='/auth/qq?next=#{next}') QQ
                 li
-                    a(href='/auth/github') Github
+                    a(href='/auth/github?next=#{next}') Github

@@ -10,19 +10,19 @@ module.exports = function(app, passport){
         'github'
     ];
 
-    function back(path, req, res, next){
-        req.callbackURL = req.protocol + '://' + req.headers.host + '/auth/' + path + '/' + encodeURIComponent(req.query.back || '/');
+    function next(path, req, res, next){
+        req.callbackURL = req.protocol + '://' + req.headers.host + '/auth/' + path + '/' + encodeURIComponent(req.query.next || '/');
         next();
     }
 
     authPath.forEach(function(x){
-        app.get('/auth/' + x, back.bind(null, x), function(req, res, next){
+        app.get('/auth/' + x, next.bind(null, x), function(req, res, next){
             passport.authenticate(x, {callbackURL: req.callbackURL})(req, res, next);
         });
-        app.get('/auth/' + x + '/:back', [back.bind(null, x), function(req, res, next){
-            passport.authenticate(x, {callbackURL: req.callbackURL, failureRedirect: '/login?back=' + req.callbackURL})(req, res, next);
+        app.get('/auth/' + x + '/:next', [next.bind(null, x), function(req, res, next){
+            passport.authenticate(x, {callbackURL: req.callbackURL, failureRedirect: '/login?next=' + req.callbackURL})(req, res, next);
         }], function(req, res) {
-            res.redirect(req.params.back);
+            res.redirect(req.params.next);
         });
     });
 
@@ -47,7 +47,7 @@ module.exports = function(app, passport){
     app.get('/login', function(req, res) {
         if(req.isAuthenticated()) return res.redirect(303, '/');
         res.render('login.jade', {
-            next_url: req.query.next ? req.query.next : '/'
+            next: req.query.next ? req.query.next : '/'
         });
     });
 
