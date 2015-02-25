@@ -24,6 +24,25 @@ Client.methods = {
     }
 };
 
+var Auth = new Schema({
+    provider: {type: String},
+    id: {type: String, index: {unique: true}},
+    emails: [String],
+    profile: {type: String},
+    accessToken: {type: String},
+    refreshToken: {type: String},
+    _raw: {type: String},
+    _json: {}
+});
+
+Auth.set('toJSON', {
+    transform: function(doc, ret, options) {
+        delete ret.accessToken;
+        delete ret.refreshToken;
+        return ret;
+    }
+});
+
 var User = new Schema({
     username: {type: String, index: {unique: true}},
     password: {type: String},
@@ -31,7 +50,7 @@ var User = new Schema({
 
     salt: {type: String, default: ''},
 
-    auth: {},
+    auth: [Auth],
 
     clients: [],
 
@@ -44,15 +63,13 @@ User.set('toJSON', {
         delete ret.password;
         delete ret.salt;
         delete ret.__v;
-        delete ret.auth;
         delete ret.clients;
         return ret;
     }
 });
 
 User.pre('save', function(next) {
-    this.salt = makeSalt();
-    this.password = this.encryptPassword(this.password);
+    this.updateTime = Date.now();
     next();
 });
 
@@ -63,8 +80,51 @@ User.methods = {
 
     authenticate: function (password) {
         return this.encryptPassword(password) === this.password;
+    },
+
+    buildPassword: function(password){
+        this.salt = makeSalt();
+        this.password = this.encryptPassword(password || this.password);
     }
 };
+User.statics = {
+    authUser: function (id, doc, callback){
+        var self = this;
+        this.findOne({'auth.id': id}, function(err, result) {
+            if(err){return console.log(err);}
+            if(result) {
+                var user = result.auth[result.auth.map(function(x){
+                    return x.id;
+                }).indexOf(id)];
+                for(var key in doc){
+                    user[key] = doc[key];
+                }
+                result.save(function(err){
+                    if(err){return console.log(err);}
+                    callback(err, result, false);
+                });
+            } else {
+                var obj = new self({username: id});
+                switch(doc.provider){
+                    case 'github':
+                        obj.email = doc.emails[0].value;
+                        doc.profile = doc.profileUrl;
+                        break;
+                    default: 
+                        obj.email = id + '@malubei.com';
+                        break;
+                }
+                obj.auth.push(doc);
+                obj.save(function(err) {
+                    callback(err, obj, true);
+                });
+            }
+        });
+    }
+};
+// User.static('findByName', function (name, callback) {
+//   return this.find({ name: name }, callback);
+// });
 
 function makeSalt(){
     return Math.round((new Date().valueOf() * Math.random())) + '';

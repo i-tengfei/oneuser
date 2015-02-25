@@ -2,7 +2,8 @@ var OAuth2Provider = require('oauth2-provider').OAuth2Provider,
     passport = require('passport'),
     mongoose = require('mongoose'),
     LocalStrategy = require('passport-local').Strategy,
-    OneUserStrategy = require('passport-oneuser').Strategy;
+    GithubStrategy = require('passport-github').Strategy
+    QQStrategy = require('passport-qq').Strategy;
 
 var User = mongoose.model('user');
 var Client = mongoose.model('client');
@@ -110,7 +111,7 @@ passport.serializeUser(function(user, done) {
 passport.deserializeUser(function(user, done) {
     User.findById(user._id, done);
 });
-
+// Local
 passport.use(new LocalStrategy({
         usernameField: 'username',
         passwordField: 'password'
@@ -129,6 +130,25 @@ passport.use(new LocalStrategy({
         } );
     })
 );
+// 第三方
+function auth(accessToken, refreshToken, profile, done) {
+    profile.accessToken = accessToken;
+    profile.refreshToken = refreshToken;
+    if(!accessToken || !profile.id) return;
+    User.authUser(profile.id, profile, function(err, result, isNew){
+        done(err, result);
+    });
+}
+// Github
+passport.use(new GithubStrategy({
+    clientID: CONFIG.AUTH.GITHUB.CLIENT_ID,
+    clientSecret: CONFIG.AUTH.GITHUB.CLIENT_SECRET
+}, auth));
+// QQ
+passport.use(new QQStrategy({
+    clientID: CONFIG.AUTH.QQ.CLIENT_ID,
+    clientSecret: CONFIG.AUTH.QQ.CLIENT_SECRET
+}, auth));
 
 exports.provider = provider;
 exports.passport = passport;

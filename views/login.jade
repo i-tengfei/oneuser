@@ -1,6 +1,59 @@
 html
-    form(method="post" action="/login")
-        input(type="hidden" name="next" value='#{next_url}')
-        input(type="text" placeholder="username" name="username")
-        input(type="password" placeholder="pasword" name="password")
-        button(type="submit") 提交
+    head
+        title 登录
+        style.
+            body{
+                margin: 0;
+            }
+            #left{
+                position: absolute;
+                background: #F0F0F0;
+                width: 35%;
+                height: 100%;
+                left: 0;
+                top: 0;
+            }
+            #right{
+                position: absolute;
+                width: 65%;
+                height: 100%;
+                right: 0;
+                top: 0;
+            }
+            input{
+                border: 0;
+                height: 36px;
+                line-height: 36px;
+                width: 180px;
+                padding: 0 10px;
+                background: #F0F0F0;
+                border-radius: 5px;
+                margin: 0 10px;
+            }
+            input:focus {
+                outline: 0;
+            }
+            button{
+                border: 0;
+                height: 36px;
+                width: 80px;
+                background: #CCC;
+                border-radius: 5px;
+            }
+            .login_form{
+                margin-top: 200px;
+            }
+    body
+        #left
+        #right
+            .login_form
+                form(method='post' action='/login')
+                    input(type='hidden' name='next' value='#{next_url}')
+                    input(type='text' placeholder='用户名' name='username')
+                    input(type='password' placeholder='密　码' name='password')
+                    button(type='submit') 提交
+            ul.login_btns
+                li
+                    a(href='/auth/qq') QQ
+                li
+                    a(href='/auth/github') Github

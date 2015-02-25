@@ -5,9 +5,25 @@ var UserModel = mongoose.model('user'),
 
 module.exports = function(app, passport){
 
-    app.post('/auth', function(req, res){
-        if (req.isAuthenticated()) return res.json(req.user);
-        res.status(401).end();
+    var authPath = [
+        'qq',
+        'github'
+    ];
+
+    function back(path, req, res, next){
+        req.callbackURL = req.protocol + '://' + req.headers.host + '/auth/' + path + '/' + encodeURIComponent(req.query.back || '/');
+        next();
+    }
+
+    authPath.forEach(function(x){
+        app.get('/auth/' + x, back.bind(null, x), function(req, res, next){
+            passport.authenticate(x, {callbackURL: req.callbackURL})(req, res, next);
+        });
+        app.get('/auth/' + x + '/:back', [back.bind(null, x), function(req, res, next){
+            passport.authenticate(x, {callbackURL: req.callbackURL, failureRedirect: '/login?back=' + req.callbackURL})(req, res, next);
+        }], function(req, res) {
+            res.redirect(req.params.back);
+        });
     });
 
     app.all('/logout', function(req, res){
@@ -21,6 +37,7 @@ module.exports = function(app, passport){
 
     app.post('/signup', function(req, res) {
         var user = new UserModel(req.body);
+        user.buildPassword();
         user.save(function (err, result) {
             if(err) return res.status(500).json(err);
             res.json(result);
@@ -44,9 +61,15 @@ module.exports = function(app, passport){
         })(req, res, next);
     });
 
-    app.get('/user', function(req, res, next) {
+    app.get('/me', function(req, res, next) {
         if(req.isAuthenticated()) return res.json(req.user);
         res.status(401).end();
+    });
+
+    app.get('/user', function(req, res, next){
+        UserModel.find({}, function(err, result){
+            res.json(result);
+        });
     });
 
     app.get('/client', function(req, res, next) {
