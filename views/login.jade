@@ -1,59 +1,169 @@
 html
     head
-        title 登录
+        title 登录 | 马路北
         style.
+            @font-face {font-family: 'iconfont';
+                src: url('/public/iconfont.eot'); /* IE9*/
+                src: url('/public/iconfont.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+                url('/public/iconfont.woff') format('woff'), /* chrome、firefox */
+                url('/public/iconfont.ttf') format('truetype'), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+                url('/public/iconfont.svg#iconfont') format('svg'); /* iOS 4.1- */
+            }
+            .iconfont{
+                font-family:"iconfont" !important;
+                font-style:normal;
+                -webkit-font-smoothing: antialiased;
+                -webkit-text-stroke-width: 0.2px;
+                -moz-osx-font-smoothing: grayscale;
+            }
             body{
                 margin: 0;
+                background: #22aced;
+                color: #FFF;
+                font-size: 12px;
             }
-            #left{
-                position: absolute;
-                background: #F0F0F0;
-                width: 35%;
-                height: 100%;
-                left: 0;
-                top: 0;
+            a{
+                text-decoration: none;
             }
-            #right{
-                position: absolute;
-                width: 65%;
-                height: 100%;
-                right: 0;
-                top: 0;
+            form{
+                margin: 0;
             }
-            input{
+            .mb10{
+                margin-bottom: 10px;
+            }
+            ul{
+                margin: 0;
+                padding: 0;
+            }
+            ul li{
+                list-style: none;
+            }
+            .login_input{
+                display: block;
                 border: 0;
-                height: 36px;
-                line-height: 36px;
-                width: 180px;
+                height: 32px;
+                line-height: 32px;
+                width: 200px;
                 padding: 0 10px;
-                background: #F0F0F0;
-                border-radius: 5px;
-                margin: 0 10px;
+                background: #FFF;
+                border-radius: 2px;
+                transition: background .2s linear;
             }
-            input:focus {
+            .login_input:focus {
                 outline: 0;
+                background: #f2f4f7;
             }
             button{
+                float: right;
                 border: 0;
-                height: 36px;
-                width: 80px;
-                background: #CCC;
-                border-radius: 5px;
+                height: 74px;
+                width: 74px;
+                background: #D9DAE0;
+                border-radius: 4px;
+                color: #FFF;
+                font-size: 20px;
+                transition: background .2s linear;
+                cursor: pointer;
             }
-            .login_form{
-                margin-top: 200px;
+            button:hover{
+                background: #ff4e00;
+            }
+
+            .container{
+                max-width: 800px;
+                margin: 80px auto 0;
+            }
+            .content_left{
+                float: left;
+                width: 400px;
+            }
+            .auth_title{
+                margin: 10px 0 20px;
+            }
+            .auth_list{
+                padding-left: 15px;
+            }
+            .content_right{
+                margin-left: 460px;
+                padding: 10px;
+            }
+
+            .login_btns{
+                width: 320px;
+            }
+            .login_btns li{
+                padding: 15px;
+                background: #FFF;
+                border-radius: 4px;
+                height: 70px;
+                width: 100%;
+                margin-bottom: 20px;
+                box-shadow: 0 0 25px rgba(0,0,0,.15);
+                transition: margin-left .2s ease-out;
+                box-sizing: border-box;
+            }
+            .login_btns li:hover{
+                margin-left: 10px;
+            }
+            .login_btns li.login_form{
+                height: auto;
+            }
+            .login_btns li a{
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
+            .btn_logo{
+                height: 36px;
+                width: 36px;
+                margin: 2px;
+                border-radius: 25px;
+                background: #5A5A5A;
+                color: #FFF;
+                font-size: 30px;
+                text-align: center;
+                line-height: 36px;
+                float: left;
+            }
+            .btn_content{
+                height: 100%;
+                padding-left: 55px;
+                color: #303030;
+            }
+            .btn_title{
+                font-size: 18px;
+                line-height: 40px;
+            }
+            .btn_title span{
+                padding: 0 5px;
+                color: #ff4e00;
             }
     body
-        #left
-        #right
-            .login_form
-                form(method='post' action='/login')
-                    input(type='hidden' name='next' value='#{next}')
-                    input(type='text' placeholder='用户名' name='username')
-                    input(type='password' placeholder='密　码' name='password')
-                    button(type='submit') 提交
-            ul.login_btns
-                li
-                    a(href='/auth/qq?next=#{encodeURIComponent(next)}') QQ
-                li
-                    a(href='/auth/github?next=#{encodeURIComponent(next)}') Github
+        .container
+            .content_left
+            .content_right
+                ul.login_btns
+                    li.login_form
+                        form(method='post' action='/login')
+                            button(type='submit') 登录
+                            input(type='hidden' name='next' value='#{next}')
+                            input.login_input.mb10(type='text' placeholder='用户名' name='username')
+                            input.login_input(type='password' placeholder='密　码' name='password')
+                    li
+                        a(href='/auth/qq?next=#{encodeURIComponent(next)}')
+                            .btn_logo
+                                i.iconfont &#xe601;
+                            .btn_content
+                                .btn_title
+                                    | 使用
+                                    span QQ
+                                    | 登录
+                    li
+                        a(href='/auth/github?next=#{encodeURIComponent(next)}')
+                            .btn_logo(style='background: none;')
+                                i.iconfont(style='font-size: 40px;color: #5A5A5A;margin-left: -2px;') &#xe60b;
+                            .btn_content
+                                .btn_title
+                                    | 使用
+                                    span Github
+                                    | 登录

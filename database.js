@@ -6,8 +6,9 @@ mongoose.connect(CONFIG.DATABASE);
 
 var Client = new Schema({
     user: {type: Schema.ObjectId, ref: 'user', index: true},
+    name: {type: String},
     appkey: {type: String, index: {unique: true}},
-    secret: {type: String, index: {unique: true}},
+    secret: {type: String},
 
     createTime: {type: Date, default: Date.now()},
     updateTime: {type: Date, default: Date.now()}

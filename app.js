@@ -6,6 +6,7 @@ if(process.env.NODE_ENV){
 require('./database');
 
 var auth = require('./auth'),
+    express = require('express'),
     session = require('express-session'),
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
@@ -19,11 +20,12 @@ var SESSION = CONFIG.SESSION,
 var passport = auth.passport,
     provider = auth.provider;
 
-var app = require('express')();
+var app = express();
 
 app.listen(CONFIG.PORT);
 app.engine('jade', require('jade').__express);
 
+app.use('/public', express.static(__dirname + '/public'));
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));

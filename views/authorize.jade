@@ -1,4 +1,81 @@
 html
-    form(method="post" action="#{authorizeUrl}")
-        button(name="allow") 通过
-        button(name="deny") 拒绝
+    head
+        title 授权 | 马路北
+        style.
+            body{
+                margin: 0;
+                background: #22aced;
+                color: #FFF;
+                font-size: 12px;
+            }
+            a{
+                text-decoration: none;
+            }
+            form{
+                margin: 0;
+            }
+            .mb10{
+                margin-bottom: 10px;
+            }
+            ul{
+                margin: 0;
+                padding: 0;
+            }
+            ul li{
+                list-style: none;
+            }
+            button{
+                height: 30px;
+                width: 100px;
+                border-radius: 3px;
+                background: #FFF;
+                border: 0;
+                box-shadow: 0 0 25px rgba(0,0,0,.15);
+                margin: 50px 15px 10px;
+                cursor: pointer;
+                font-size: 14px;
+                color: #505050;
+                float: right;
+            }
+            .container{
+                max-width: 600px;
+                margin: 80px auto 0;
+            }
+            .auth_title{
+                height: 40px;
+                line-height: 40px;
+                padding: 0 20px;
+                border-bottom: 1px solid #FFF;
+            }
+            .auth_title a{
+                font-size: 16px;
+                padding: 0 5px;
+                color: #FFF;
+                transition: color .2s linear;
+            }
+            .auth_title a:hover{
+                color: #FFE0E0;
+            }
+            .auth_list{
+                padding: 10px 20px;
+            }
+            .auth_list li{
+                line-height: 24px;
+            }
+    body
+        .container
+            - if (client)
+                form(method='post' action='#{authorizeUrl}')
+                    .auth_title
+                        | 您正在授权
+                        a(href='#{client.link}') #{client.name}
+                        | 获得以下权限：
+                    ul.auth_list
+                        each scope in scopes
+                            li
+                                input(name='scope' value='#{scope.name}' type='checkbox' checked disabled='#{scope.name === "user"}')
+                                | #{scope.info}
+                    button(name='allow') 通过
+                    button(name='deny') 拒绝
+            - else
+                .error #{error}

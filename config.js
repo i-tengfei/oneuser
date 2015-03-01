@@ -8,6 +8,8 @@ module.exports = {
         COLLECTION: 'sessions'
     },
     AUTH: {
+        CRYPT_KEY: 'oneuser encryption secret',
+        SIGN_KEY: 'oneuser signing secret',
         QQ: {
             CLIENT_ID: 'id',
             CLIENT_SECRET: 'secret'

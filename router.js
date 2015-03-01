@@ -76,7 +76,8 @@ module.exports = function(app, passport){
 
         if(!req.isAuthenticated()) return res.status(401).end();
         var client = new ClientModel({
-            user: req.user._id
+            user: req.user._id,
+            name: '马路北'
         });
         client.save(function(err, result){
             if(err) return res.status(500).json(err);

@@ -1,6 +1,7 @@
 var OAuth2Provider = require('oauth2-provider').OAuth2Provider,
     passport = require('passport'),
     mongoose = require('mongoose'),
+    request = require('request'),
     LocalStrategy = require('passport-local').Strategy,
     GithubStrategy = require('passport-github').Strategy
     QQStrategy = require('passport-qq').Strategy;
@@ -8,10 +9,15 @@ var OAuth2Provider = require('oauth2-provider').OAuth2Provider,
 var User = mongoose.model('user');
 var Client = mongoose.model('client');
 
+var appScopes = {
+    user: '获得您的用户名、邮箱、头像'
+};
+var AUTH = CONFIG.AUTH;
 // ---------- ---------- | Provider | ---------- ---------- //
 var grants = {};
+var TOKEN_TTL = 3 * 24 * 60 * 60 * 1000;
 
-var provider = new OAuth2Provider({crypt_key: 'oneuser encryption secret', sign_key: 'oneuser signing secret', access_token_uri: '/oauth/token'});
+var provider = new OAuth2Provider({crypt_key: AUTH.CRYPT_KEY, sign_key: AUTH.SIGN_KEY, access_token_uri: '/oauth/token'});
 
 provider.on('enforce_login', function(req, res, authorizeUrl, next) {
     if(req.isAuthenticated()) {
@@ -21,8 +27,51 @@ provider.on('enforce_login', function(req, res, authorizeUrl, next) {
     }
 });
 provider.on('authorize_form', function(req, res, clientAppkey, authorizeUrl) {
-    res.render('authorize.jade', {
-        authorizeUrl: authorizeUrl
+    Client.findOne({appkey: clientAppkey}, function(err, result){
+        if(err) return res.status(500).end();
+        var status = 200,
+            scopes = [],
+            error = '';
+        if(!result){
+            status = 400;
+            error = '找不到该应用，请检查应用AppKey！';
+        }
+        if(req.query.scope){
+            scopes = req.query.scope.split(',');
+            if(!scopes.some(function(x){return x==='user'})){
+                scopes.unshift('user');
+            }
+        }
+        scopes = scopes.map(function(x){
+            return {
+                name: x,
+                info: appScopes[x]
+            };
+        }).filter(function(x){return !!appScopes[x.name]});
+
+        var clients = req.user.clients;
+        if(clients && clients.length){
+            for(var i = 0; i < clients.length; i++){
+                var client = clients[i];
+                if(client.appkey === clientAppkey){
+                    var data = provider.serializer.parse(client.token);
+                    var userID = data[0],
+                        clientID = data[1],
+                        grantDate = new Date(data[2]),
+                        extraData = data[3];
+                    if(userID === ''+req.user._id && clientID === clientAppkey && grantDate.getTime() + TOKEN_TTL > Date.now()){
+                        // TODO: 自动跳转
+                    }
+                }
+            }
+        }
+
+        res.status(status).render('authorize.jade', {
+            authorizeUrl: authorizeUrl,
+            client: result,
+            scopes: scopes,
+            error: error
+        });
     });
 });
 provider.on('save_grant', function(req, clientAppkey, code, next) {
@@ -30,7 +79,23 @@ provider.on('save_grant', function(req, clientAppkey, code, next) {
     if(!(userID in grants))
         grants[userID] = {};
 
-    grants[userID][clientAppkey] = code;
+    var scope = req.body.scope;
+    if(!scope){
+        scope = 'user';
+    }
+    if(!Array.isArray(scope)){
+        scope = [scope]
+    }
+    if(scope.indexOf('user') === -1){
+        scope.unshift('user');
+    }
+
+    grants[userID][clientAppkey] = {
+        scopes: scope.filter(function(x){
+            return !!appScopes[x];
+        }),
+        code: code
+    };
     next();
 });
 provider.on('remove_grant', function(userID, clientAppkey, code) {
@@ -45,7 +110,7 @@ provider.on('lookup_grant', function(clientAppkey, clientSecret, code, next) {
         if(!err && user){
             for(var userID in grants) {
                 var clients = grants[userID];
-                if(clients[clientAppkey] && clients[clientAppkey] == code){
+                if(clients[clientAppkey] && clients[clientAppkey].code == code){
                     return next(null, userID);
                 }
             }
@@ -55,9 +120,8 @@ provider.on('lookup_grant', function(clientAppkey, clientSecret, code, next) {
     });
 });
 provider.on('create_access_token', function(userID, clientAppkey, next) {
-    var extra_data = 'blah';
-    var oauth_params = {token_type: 'bearer'};
-    next(extra_data/*, oauth_params*/);
+    var extra_data = {scopes: grants[userID][clientAppkey].scopes};
+    next(extra_data);
 });
 provider.on('save_access_token', function(userID, clientAppkey, accessToken) {
     var token = accessToken.access_token;
@@ -76,32 +140,26 @@ provider.on('save_access_token', function(userID, clientAppkey, accessToken) {
             }, function(err, user){});
         }
     });
+    accessToken.scope = grants[userID][clientAppkey].scopes;
 });
 provider.on('access_token', function(req, token, next) {
-    var TOKEN_TTL = 3 * 24 * 60 * 60 * 1000; // 10 minutes
-
     if(token.grant_date.getTime() + TOKEN_TTL < Date.now()) {
         return next(new Error('授权已过期'));
     } else {
         User.findById(token.user_id, function(err, user){
-            if(!err && user){
-                req.login(user, function(){
-                    req.session.data = token.extra_data;
-                    next();
-                });
-            }else{
-                return next(new Error('用户未找到'));
-            }
+            if(err) return res.status(500).end();
+            if(!user) return res.status(403).end('用户未找到！');
+            if(!user.clients || !user.clients.length) return res.status(403).end('用户未授权该应用！');
+            if(!user.clients.some(function(x){
+                return x.appkey === token.client_id;
+            })) return res.status(403).end('用户未授权该应用！');
+            
+            req.login(user, function(){
+                next();
+            });
         });
     }
 });
-//provider.on('client_auth', function(clientAppkey, clientSecret, username, password, next) {
-//    if(clientAppkey == '1' && username == 'guest') {
-//        var user_id = '1337';
-//        return next(null, user_id);
-//    }
-//    return next(new Error('client authentication denied'));
-//});
 
 // ---------- ---------- | Passport | ---------- ---------- //
 passport.serializeUser(function(user, done) {
@@ -141,13 +199,13 @@ function auth(accessToken, refreshToken, profile, done) {
 }
 // Github
 passport.use(new GithubStrategy({
-    clientID: CONFIG.AUTH.GITHUB.CLIENT_ID,
-    clientSecret: CONFIG.AUTH.GITHUB.CLIENT_SECRET
+    clientID: AUTH.GITHUB.CLIENT_ID,
+    clientSecret: AUTH.GITHUB.CLIENT_SECRET
 }, auth));
 // QQ
 passport.use(new QQStrategy({
-    clientID: CONFIG.AUTH.QQ.CLIENT_ID,
-    clientSecret: CONFIG.AUTH.QQ.CLIENT_SECRET
+    clientID: AUTH.QQ.CLIENT_ID,
+    clientSecret: AUTH.QQ.CLIENT_SECRET
 }, auth));
 
 exports.provider = provider;

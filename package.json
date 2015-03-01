@@ -22,7 +22,6 @@
     "passport": "^0.2.1",
     "passport-github": "^0.1.5",
     "passport-local": "^1.0.0",
-    "passport-oneuser": "^1.0.3",
     "passport-qq": "0.0.3",
     "request": "^2.51.0"
   }
