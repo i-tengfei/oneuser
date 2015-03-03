@@ -160,7 +160,7 @@ provider.on('access_token', function(req, token, next) {
         });
     }
 });
-provider.on('client_auth', function(client_id, client_secret, username, password, next) {
+provider.on('client_auth', function(clientAppkey, client_secret, username, password, next) {
     // TODO:
     // if(client_id == '1' && username == 'guest') {
         var conditions = {};
@@ -173,6 +173,7 @@ provider.on('client_auth', function(client_id, client_secret, username, password
             if (!user.authenticate(password)) {
                 return next(new Error('Invalid password'));
             }
+            grants[user._id][clientAppkey] = {scopes: ['user']};
             return next(null, user._id);
         } );
     // }
