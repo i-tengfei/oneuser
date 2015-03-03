@@ -10,7 +10,8 @@ var User = mongoose.model('user');
 var Client = mongoose.model('client');
 
 var appScopes = {
-    user: '获得您的用户名、邮箱、头像'
+    user: '获得您的用户名、邮箱、头像',
+    travel: '获得您的旅游路线信息'
 };
 var AUTH = CONFIG.AUTH;
 // ---------- ---------- | Provider | ---------- ---------- //
@@ -125,7 +126,7 @@ provider.on('create_access_token', function(userID, clientAppkey, next) {
         extra_data.scopes = grants[userID][clientAppkey].scopes
     }else{
         // self
-        extra_data.scopes = ['user'];
+        extra_data.scopes = ['user', 'travel'];
     }
     next(extra_data);
 });
