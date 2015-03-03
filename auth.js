@@ -49,22 +49,22 @@ provider.on('authorize_form', function(req, res, clientAppkey, authorizeUrl) {
             };
         }).filter(function(x){return !!appScopes[x.name]});
 
-        var clients = req.user.clients;
-        if(clients && clients.length){
-            for(var i = 0; i < clients.length; i++){
-                var client = clients[i];
-                if(client.appkey === clientAppkey){
-                    var data = provider.serializer.parse(client.token);
-                    var userID = data[0],
-                        clientID = data[1],
-                        grantDate = new Date(data[2]),
-                        extraData = data[3];
-                    if(userID === ''+req.user._id && clientID === clientAppkey && grantDate.getTime() + TOKEN_TTL > Date.now()){
-                        // TODO: 自动跳转
-                    }
-                }
-            }
-        }
+        // var clients = req.user.clients;
+        // if(clients && clients.length){
+        //     for(var i = 0; i < clients.length; i++){
+        //         var client = clients[i];
+        //         if(client.appkey === clientAppkey){
+        //             var data = provider.serializer.parse(client.token);
+        //             var userID = data[0],
+        //                 clientID = data[1],
+        //                 grantDate = new Date(data[2]),
+        //                 extraData = data[3];
+        //             if(userID === ''+req.user._id && clientID === clientAppkey && grantDate.getTime() + TOKEN_TTL > Date.now()){
+        //                 // TODO: 自动跳转
+        //             }
+        //         }
+        //     }
+        // }
 
         res.status(status).render('authorize.jade', {
             authorizeUrl: authorizeUrl,

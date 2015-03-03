@@ -27,13 +27,13 @@ module.exports = function(app, passport){
     });
 
     app.all('/logout', function(req, res){
-        if(!req.isAuthenticated()) return res.redirect(303, '/');
+        if(!req.isAuthenticated()) return res.redirect('/');
         req.logout();
         res.redirect('/');
     });
 
     app.get('/signup', function(req, res) {
-        if(req.isAuthenticated()) return res.redirect(303, '/');
+        if(req.isAuthenticated()) return res.redirect('/');
         res.render('signup.jade');
     });
 
@@ -43,7 +43,7 @@ module.exports = function(app, passport){
         user.save(function (err, result) {
             if(err) return res.status(500).json(err);
             res.format({'text/html': function(){
-                res.redirect(303, req.body.next || '/');
+                res.redirect(req.body.next || '/');
             }, 'application/json': function(){
                 res.json(result);
             }, 'default': function() {
@@ -53,7 +53,7 @@ module.exports = function(app, passport){
     });
 
     app.get('/login', function(req, res) {
-        if(req.isAuthenticated()) return res.redirect(303, '/');
+        if(req.isAuthenticated()) return res.redirect('/');
         res.render('login.jade', {
             next: req.query.next ? req.query.next : '/'
         });
@@ -64,7 +64,7 @@ module.exports = function(app, passport){
             if(err) return res.status(500).json(err);
             if(user) return req.login(user, function(){
                 res.format({'text/html': function(){
-                    res.redirect(303, req.body.next || '/');
+                    res.redirect(req.body.next || '/');
                 }, 'application/json': function(){
                     res.json(user);
                 }, 'default': function() {
