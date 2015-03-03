@@ -146,7 +146,8 @@ provider.on('save_access_token', function(userID, clientAppkey, accessToken) {
             }, function(err, user){});
         }
     });
-    accessToken.scope = grants[userID][clientAppkey].scopes;
+    if(grants[userID] && grants[userID][clientAppkey])
+        accessToken.scope = grants[userID][clientAppkey].scopes;
 });
 provider.on('access_token', function(req, token, next) {
     if(token.grant_date.getTime() + TOKEN_TTL < Date.now()) {
