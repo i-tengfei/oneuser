@@ -160,7 +160,25 @@ provider.on('access_token', function(req, token, next) {
         });
     }
 });
+provider.on('client_auth', function(client_id, client_secret, username, password, next) {
+    // TODO:
+    // if(client_id == '1' && username == 'guest') {
+        var conditions = {};
+        conditions.username = username;
+        User.findOne(conditions, function (err, user) {
+            if (err) {return done(err)}
+            if (!user) {
+                return next(new Error('Unknown user'));
+            }
+            if (!user.authenticate(password)) {
+                return next(new Error('Invalid password'));
+            }
+            return next(null, user._id);
+        } );
+    // }
 
+    return next(new Error('client authentication denied'));
+});
 // ---------- ---------- | Passport | ---------- ---------- //
 passport.serializeUser(function(user, done) {
     done(null, user);
