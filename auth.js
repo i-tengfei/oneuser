@@ -166,7 +166,7 @@ provider.on('client_auth', function(client_id, client_secret, username, password
         var conditions = {};
         conditions.username = username;
         User.findOne(conditions, function (err, user) {
-            if (err) {return done(err)}
+            if (err) {return next(err)}
             if (!user) {
                 return next(new Error('Unknown user'));
             }
@@ -177,7 +177,7 @@ provider.on('client_auth', function(client_id, client_secret, username, password
         } );
     // }
 
-    return next(new Error('client authentication denied'));
+    // return next(new Error('client authentication denied'));
 });
 // ---------- ---------- | Passport | ---------- ---------- //
 passport.serializeUser(function(user, done) {
