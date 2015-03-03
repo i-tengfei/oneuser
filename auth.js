@@ -120,7 +120,13 @@ provider.on('lookup_grant', function(clientAppkey, clientSecret, code, next) {
     });
 });
 provider.on('create_access_token', function(userID, clientAppkey, next) {
-    var extra_data = {scopes: grants[userID][clientAppkey].scopes};
+    var extra_data = {};
+    if(grants[userID] && grants[userID][clientAppkey]){
+        extra_data.scopes = grants[userID][clientAppkey].scopes
+    }else{
+        // self
+        extra_data.scopes = ['user'];
+    }
     next(extra_data);
 });
 provider.on('save_access_token', function(userID, clientAppkey, accessToken) {
@@ -173,8 +179,7 @@ provider.on('client_auth', function(clientAppkey, client_secret, username, passw
             if (!user.authenticate(password)) {
                 return next(new Error('Invalid password'));
             }
-            grants[user._id][clientAppkey] = {scopes: ['user']};
-            return next(null, user._id);
+            next(null, user._id);
         } );
     // }
 
