@@ -27,11 +27,13 @@ module.exports = function(app, passport){
     });
 
     app.all('/logout', function(req, res){
+        if(!req.isAuthenticated()) return res.redirect(303, '/');
         req.logout();
         res.redirect('/');
     });
 
     app.get('/signup', function(req, res) {
+        if(req.isAuthenticated()) return res.redirect(303, '/');
         res.render('signup.jade');
     });
 
@@ -40,7 +42,13 @@ module.exports = function(app, passport){
         user.buildPassword();
         user.save(function (err, result) {
             if(err) return res.status(500).json(err);
-            res.json(result);
+            res.format({'text/html': function(){
+                res.redirect(303, req.body.next || '/');
+            }, 'application/json': function(){
+                res.json(result);
+            }, 'default': function() {
+                res.status(406).send('Not Acceptable');
+            }});
         });
     });
 
@@ -55,9 +63,17 @@ module.exports = function(app, passport){
         passport.authenticate('local', function(err, user, info) {
             if(err) return res.status(500).json(err);
             if(user) return req.login(user, function(){
-                res.redirect(303, req.body.next || '/');
+                res.format({'text/html': function(){
+                    res.redirect(303, req.body.next || '/');
+                }, 'application/json': function(){
+                    res.json(user);
+                }, 'default': function() {
+                    res.status(406).send('Not Acceptable');
+                }});
             });
             res.status(401).end();
+
+            
         })(req, res, next);
     });
 
